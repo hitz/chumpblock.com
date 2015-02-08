@@ -4,7 +4,7 @@ zones = Enum('hand', 'library', 'graveyard', 'battlefield', 'exile')
 permanents = Enum('land', 'creature', 'enchantment', 'artifact', 'planeswalker')
 
 class Cost(object):
-    # does not handle phyrexian, hybrid or alt casting costs
+    # does not handle phyrexian, hybrid, X, or alt casting costs
     symbols = ['B', 'G', 'R', 'U', 'W']
     def __init__(self, fromString="", B=0, G=0, R=0, U=0, W=0, c=0):
         self.mana = {}
