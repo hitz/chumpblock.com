@@ -1,7 +1,9 @@
 import re
-from enum import Enum
-zones = Enum('hand', 'library', 'graveyard', 'battlefield', 'exile')
-permanents = Enum('land', 'creature', 'enchantment', 'artifact', 'planeswalker')
+#from enum import Enum
+#zones = Enum('hand', 'library', 'graveyard', 'battlefield', 'exile')
+zones = ['hand', 'library', 'graveyard', 'battlefield', 'exile']
+#permanents = Enum('land', 'creature', 'enchantment', 'artifact', 'planeswalker')
+permanents = ['land', 'creature', 'enchantment', 'artifact', 'planeswalker']
 
 class Cost(object):
     # does not handle phyrexian, hybrid, X, or alt casting costs
