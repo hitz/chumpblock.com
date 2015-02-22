@@ -54,12 +54,19 @@ class Cost(object):
 
 class Card(object):
 
-    def __init__(self, name, cost, spells):
-        self.name = name
-        self.is_permanent = False
-        self.zone = 'library'
-        self.mana_cost = Cost(fromString=cost)
+    def __init__(self, name='', cost='', spells=[], cardData={}):
+        if cardData:
+            self.name = cardData['name']
+            self.mana_cost = Cost(fromString=cardData['manaCost'])
+            self.cardData = cardData
+            self.is_permanent = False or [ ty for ty in self.cardData['types'] if ty in permanents ]
+        else:
+            self.name = name
+            self.is_permanent = False
+            self.mana_cost = Cost(fromString=cost)
+
         self.spells = spells  # array of functions
+        self.zone = 'library'
 
     def draw(self):
         self.zone = 'hand'
