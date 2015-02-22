@@ -6,12 +6,22 @@ zones = ['hand', 'library', 'graveyard', 'battlefield', 'exile']
 permanents = ['Land', 'Creature', 'Enchantment', 'Artifact', 'Planeswalker']
 
 class Cost(object):
-    # does not handle phyrexian, hybrid, or alt casting costs
+    # does not handle phyrexian, or alt casting costs
     # mana costs from MTGJson are {Z} where Z is int or symbol
     # hybrid is {S/T}
     # X is {X}
     # Phyrexian is {Z/P}
-    allowed_symbols = ['B', 'G', 'R', 'U', 'W', 'X']
+    base_symbols = ['B', 'G', 'R', 'U', 'W']
+    allowed_symbols = base_symbols+['X']
+    for a in base_symbols:
+        allowed_symbols.append(a+'/P')
+        for b in base_symbols[1:]:
+            if a==b:
+                continue
+            else:
+                allowed_symbols.append(a+'/'+b)
+                allowed_symbols.append(b+'/'+a)
+
     def __init__(self, fromString="", B=0, G=0, R=0, U=0, W=0, c=0, X=False):
         self.mana = {}
         if fromString:
@@ -27,9 +37,6 @@ class Cost(object):
                 except ValueError:
                     if symbol == 'X':
                         self.mana['X'] == True
-                    elif symbol.find('/') >= 0:
-                        print("Cannot parse: %s currently" % (symbol))
-                        raise
                     elif symbol in self.allowed_symbols:
                         self.mana[symbol] = self.mana.get(symbol,0) + 1
                     else:
@@ -37,6 +44,7 @@ class Cost(object):
                         raise
 
         else:
+            ## warning does not handle hybrid/phyrexian use fromString!!!
             self.mana['colorless'] = int(c)
             self.mana['B'] = int(B)
             self.mana['G'] = int(G)
