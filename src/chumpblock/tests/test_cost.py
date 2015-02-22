@@ -42,13 +42,21 @@ data = [
         'W': 2,
         'U': 2
         }
+    },
+    { '{G/P}': {
+        'G/P': 1
+        }
+    },
+    { '{3}{R}{R/P}': {
+        'colorless': 3,
+        'R': 1,
+        'R/P': 1
+        }
     }
 ]
 
 bad_data = [
-    '{G/P}',
     '{H}',
-    '{3}{R}{R/P}'
 ]
 
 def test_cards():
@@ -63,6 +71,7 @@ def test_cards():
     for bad in bad_data:
         try:
             cost = cards.Cost(fromString=bad)
+            assert(False)
         except:
             assert(True)
 

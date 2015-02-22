@@ -31,10 +31,10 @@ class Deck(object):
         side = False
         for line in df.readlines():
             ## pre filters
-            if sideRe.match(line):
+            if sideRe.search(line):
                 side = True
                 continue
-            if line.find('#') >= 0 or line.find('/') >= 0:
+            if line.isspace() or line.find('#') >= 0 or line.find('/') >= 0:
                 # probably a comment line
                 continue
             card_line = regular.match(line)

@@ -2,17 +2,17 @@
 2 Highland Game
 1 Ainok Guide
 1 Sultai Emissary
-1 Abzan Beast-master
+1 Abzan Beastmaster
 1 Cloudform
 1 Hooded Assassin
-1 Sidisi’s Pet
-1 Wooly Loxodon
+1 Sidisi's Pet
+1 Woolly Loxodon
 1 Bellowing Saddlebrute
-2 Feral Crush
+2 Feral Krushok
 1 Mindscour Dragon
 1 Tusked Colossodon
 
-1 Ghostfire Blase
+1 Ghostfire Blade
 1 Debilitating Injury
 1 Sultai Charm
 1 Awaken the Bear
