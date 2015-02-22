@@ -1,30 +1,65 @@
 import random
 import json
-import cards
+from cards import cards
+import re
 
 class Deck(object):
 
     def __init__(self):
-        self.order = []
-        return self
+        self.main = []
+        self.side = []
+        self.db = CardDB()
 
     def shuffle(self):
-        random.shuffle(self.order)
+        random.shuffle(self.main)
 
     def drawCard(self):
-        return self.order.pop()
+        return self.main.pop()
 
     def putOnTop(self, card):
-        self.order.append(card)
+        self.main.append(card)
 
     def putOnBottom(self, card):
-        self.order.insert(0,card)
+        self.main.insert(0,card)
 
-    def load_deck(self, input_file=''):
+    def load_deck(self, input_file='', file_type="txt"):
+        ''' need cockatrice XML parse here as well'''
+
         df = open(input_file)
+        regular = re.compile('(\d+)\s+(.+)$')
+        sideRe = re.compile('side(?i)')
+        side = False
+        for line in df.readlines():
+            ## pre filters
+            if sideRe.match(line):
+                side = True
+                continue
+            if line.find('#') >= 0 or line.find('/') >= 0:
+                # probably a comment line
+                continue
+            card_line = regular.match(line)
+            if not card_line:
+                print("Odd line in deck: %s" % (line))
+                continue
+            num = int(card_line.group(1))
+            card_name = card_line.group(2).strip()
+            try:
+                template = self.db.by_card[card_name]
+            except KeyError:
+                print("Could not find %s in db" % (card_name))
+                continue
+
+            for n in range(num):
+                if side:
+                    self.side.append(cards.Card(cardData=template))
+                else:
+                    self.main.append(cards.Card(cardData=template))
+
+
 
 
 class CardDB(object):
+    ''' this reads all MTG cards from JSON.  It should be memoized '''
     def __init__(self, input_file='data/AllSets-x.json'):
         self.all = json.load(open(input_file))
 

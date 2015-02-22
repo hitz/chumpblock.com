@@ -57,7 +57,7 @@ class Card(object):
     def __init__(self, name='', cost='', spells=[], cardData={}):
         if cardData:
             self.name = cardData['name']
-            self.mana_cost = Cost(fromString=cardData['manaCost'])
+            self.mana_cost = Cost(fromString=cardData.get('manaCost',''))
             self.cardData = cardData
             self.is_permanent = False or [ ty for ty in self.cardData['types'] if ty in permanents ]
         else:
