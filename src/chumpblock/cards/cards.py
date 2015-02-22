@@ -3,23 +3,39 @@ import re
 #zones = Enum('hand', 'library', 'graveyard', 'battlefield', 'exile')
 zones = ['hand', 'library', 'graveyard', 'battlefield', 'exile']
 #permanents = Enum('land', 'creature', 'enchantment', 'artifact', 'planeswalker')
-permanents = ['land', 'creature', 'enchantment', 'artifact', 'planeswalker']
+permanents = ['Land', 'Creature', 'Enchantment', 'Artifact', 'Planeswalker']
 
 class Cost(object):
-    # does not handle phyrexian, hybrid, X, or alt casting costs
-    symbols = ['B', 'G', 'R', 'U', 'W']
-    def __init__(self, fromString="", B=0, G=0, R=0, U=0, W=0, c=0):
+    # does not handle phyrexian, hybrid, or alt casting costs
+    # mana costs from MTGJson are {Z} where Z is int or symbol
+    # hybrid is {S/T}
+    # X is {X}
+    # Phyrexian is {Z/P}
+    allowed_symbols = ['B', 'G', 'R', 'U', 'W', 'X']
+    def __init__(self, fromString="", B=0, G=0, R=0, U=0, W=0, c=0, X=False):
         self.mana = {}
         if fromString:
-            colorless = re.search(r"(\d+)", fromString)
-            if colorless:
-                self.mana['colorless'] = int(colorless.group(0))
+            bracks = re.compile('[\{\}]')
+            syms = bracks.split(fromString)
+            for symbol in syms:
+                if not symbol:
+                    continue
+                    # split leaves ""s
+                try:
+                    colorless = int(symbol)
+                    self.mana['colorless'] = colorless
+                except ValueError:
+                    if symbol == 'X':
+                        self.mana['X'] == True
+                    elif symbol.find('/') >= 0:
+                        print("Cannot parse: %s currently" % (symbol))
+                        raise
+                    elif symbol in self.allowed_symbols:
+                        self.mana[symbol] = self.mana.get(symbol,0) + 1
+                    else:
+                        print("Unknown mana symbol: %s" % (symbol))
+                        raise
 
-            for color in self.symbols:
-                ss = '('+color+')+'
-                found = re.search(ss, fromString)
-                if found:
-                    self.mana[color] = len(found.group(0))
         else:
             self.mana['colorless'] = int(c)
             self.mana['B'] = int(B)
@@ -27,6 +43,7 @@ class Cost(object):
             self.mana['R'] = int(R)
             self.mana['U'] = int(U)
             self.mana['W'] = int(W)
+            self.mana['X'] = X
 
     def cmc(self):
         # this could be a one-liner with reduce I am sure
