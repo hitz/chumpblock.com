@@ -54,10 +54,10 @@ class Cost(object):
             self.mana['X'] = X
 
     def cmc(self):
-        # this could be a one-liner with reduce I am sure
-        cmc =0
-        for color in self.mana.keys():
-            cmc += self.mana[color]
+        return self.cardData.get('cmc',0)
+
+    def __str__(self):
+        return "[ %s (%s) ]" % (self.name, self.cardData.get('manaCost', '0'))
 
 
 class Card(object):
@@ -106,6 +106,7 @@ class LegendaryMixin(object):
         self.is_legendary = True
 
     def play(self, context):
+        # this is the old Legendary rule
         others = context.battlefield.get(self.name)
         if not others:
             super(Card, LegendaryMixin).play()
