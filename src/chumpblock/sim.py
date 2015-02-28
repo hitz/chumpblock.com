@@ -18,14 +18,19 @@ def run(turns, rounds, decks, goldfish=True):
         sys.exit(1)
 
     ourplayers = []
+    for n in range(0,nplayers):
+        player = players.Player(name="Player%s" % n, deck=decks[n])
+        ourplayers.append(player)
+
+
     for round in range(0,rounds):
         print("Round %s... FIGHT" % (round+1))
-        for n in range(0,nplayers):
-            player = players.Player(name="Player%s" % n, deck=decks[n])
+        for player in ourplayers:
+            player.reset()
+            print("%s has a %s card deck" % (player.name, len(player.deck.main)))
             player.mulligan(rules={})
             print("After mulligans player %s has %s cards." % (player.name, len(player.hand)))
             print("%s" % ([ str(c) for c in player.hand ]))
-            ourplayers.append(player)
 
 
 

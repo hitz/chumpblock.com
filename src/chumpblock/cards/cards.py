@@ -56,10 +56,6 @@ class Cost(object):
     def cmc(self):
         return self.cardData.get('cmc',0)
 
-    def __str__(self):
-        return "[ %s (%s) ]" % (self.name, self.cardData.get('manaCost', '0'))
-
-
 class Card(object):
 
     def __init__(self, name='', cost='', spells=[], cardData={}):
@@ -93,6 +89,10 @@ class Card(object):
 
         self.pay_cost(context)  # need some sort of game context object
         self.zone = 'battlefield'
+
+    def __str__(self):
+        return "[ %s (%s) ]" % (self.name, self.cardData.get('manaCost', '0'))
+
 
 
 class PermanentMixin(object):

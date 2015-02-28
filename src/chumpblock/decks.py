@@ -5,9 +5,12 @@ import re
 
 class Deck(object):
 
-    def __init__(self):
+    def __init__(self, name=''):
         self.main = []
         self.side = []
+        self.deck_file = ''
+        self.name = name
+        self.total_cards = 0 ## not including side
         self.db = CardDB()
 
     def shuffle(self):
@@ -25,6 +28,7 @@ class Deck(object):
     def load_deck(self, input_file='', file_type="txt"):
         ''' need cockatrice XML parse here as well'''
 
+        self.deck_file = input_file
         df = open(input_file)
         regular = re.compile('(\d+)\s+(.+)$')
         sideRe = re.compile('side(?i)')
@@ -54,6 +58,7 @@ class Deck(object):
                     self.side.append(cards.Card(cardData=template))
                 else:
                     self.main.append(cards.Card(cardData=template))
+        self.total_cards = len(self.main)
 
 
 
