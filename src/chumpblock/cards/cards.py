@@ -67,14 +67,18 @@ class Card(object):
             self.name = cardData['name']
             self.mana_cost = Cost(fromString=cardData.get('manaCost',''))
             self.cardData = cardData
-            self.is_permanent = False or [ ty for ty in self.cardData['types'] if ty in permanents ]
         else:
             self.name = name
-            self.is_permanent = False
             self.mana_cost = Cost(fromString=cost)
 
         self.spells = spells  # array of functions
         self.zone = 'library'
+
+    def isLand(self):
+        return 'Land' in self.cardData['types']
+
+    def isPermanent(self):
+        return False or bool([ ty for ty in self.cardData['types'] if ty in permanents ])
 
     def draw(self):
         self.zone = 'hand'

@@ -19,9 +19,8 @@ class Player(object):
             if len(self.hand) and len(self.hand) < 5:
                 # keep all 4s
                 return True
-            elif len([ c for c in self.hand if c.isLand() ]) and
-                   len([ c for c in self.hand if not c.isLand() ]):
-                   return True
+            elif len([ c for c in self.hand if c.isLand() ]) and len([ c for c in self.hand if not c.isLand() ]):
+                    return True
             else:
                 return False
 
@@ -31,8 +30,14 @@ class Player(object):
 
         self.deck.shuffle()
         self.hand = []
-        for i in range(0,n)
+        if n==7:
+            print("Drawing initial 7...")
+        else:
+            print("Mulling to %s...") % (n)
+        for i in range(0,n):
             self.hand.append(self.deck.drawCard())
 
-        while(not self._satisfied(self, rules, n)):
+        while(not self._satisfied(rules, n)):
             self.mulligan(rules,n-1)
+
+        print("Final hand %s" % (self.hand))
