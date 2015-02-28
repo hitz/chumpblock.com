@@ -23,7 +23,8 @@ def run(turns, rounds, decks, goldfish=True):
         for n in range(0,nplayers):
             player = players.Player(name="Player%s" % n, deck=decks[n])
             player.mulligan(rules={})
-            print("After mulligans player %s has %s cards [%s]" % (player.name, len(player.hand), player.hand))
+            print("After mulligans player %s has %s cards." % (player.name, len(player.hand)))
+            print("%s" % ([ str(c) for c in player.hand ]))
             ourplayers.append(player)
 
 
