@@ -36,7 +36,7 @@ class Cost(object):
                     self.mana['colorless'] = colorless
                 except ValueError:
                     if symbol == 'X':
-                        self.mana['X'] == True
+                        self.mana['X'] = True
                     elif symbol in self.allowed_symbols:
                         self.mana[symbol] = self.mana.get(symbol,0) + 1
                     else:
