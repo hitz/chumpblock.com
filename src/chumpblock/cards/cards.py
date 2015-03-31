@@ -1,9 +1,11 @@
 import re
 #from enum import Enum
 #zones = Enum('hand', 'library', 'graveyard', 'battlefield', 'exile')
-zones = ['hand', 'library', 'graveyard', 'battlefield', 'exile']
 #permanents = Enum('land', 'creature', 'enchantment', 'artifact', 'planeswalker')
+## below should be enums I guess but never bothered to load module
+zones = ['hand', 'library', 'graveyard', 'battlefield', 'exile']
 permanents = ['Land', 'Creature', 'Enchantment', 'Artifact', 'Planeswalker']
+base_symbols = ['B', 'G', 'R', 'U', 'W']
 
 class Cost(object):
     # does not handle phyrexian, or alt casting costs
@@ -11,7 +13,6 @@ class Cost(object):
     # hybrid is {S/T}
     # X is {X}
     # Phyrexian is {Z/P}
-    base_symbols = ['B', 'G', 'R', 'U', 'W']
     allowed_symbols = base_symbols+['X']
     for a in base_symbols:
         allowed_symbols.append(a+'/P')
@@ -63,12 +64,29 @@ class Card(object):
             self.name = cardData['name']
             self.mana_cost = Cost(fromString=cardData.get('manaCost',''))
             self.cardData = cardData
+
+            ''' find important abilities '''
+            text = self.cardData.get("text","")
+            if not text:
+                # note basic lands
+                text = self.cardData.get("originalText", "")
+
+            # find if cipt
+            self.cipt = False
+            if text.find('enters the battlefield tapped'):
+                self.cipt = True
+
+            # find mana abilities
+            if
         else:
             self.name = name
             self.mana_cost = Cost(fromString=cost)
 
         self.spells = spells  # array of functions
         self.zone = 'library'
+        self.untaps_normally = True
+        self.summoning_sick = False
+        self.tapped = None #
 
     def isLand(self):
         return 'Land' in self.cardData['types']
@@ -85,10 +103,21 @@ class Card(object):
     def exile(self):
         self.zone = 'exile'
 
+    def tap(self):
+        if not self.tapped:
+            self.tapped = True
+
+    def untap(self):
+        if self.tapped:
+            self.tapped = False
+
     def play(self, context):
 
         self.pay_cost(context)  # need some sort of game context object
         self.zone = 'battlefield'
+        self.tapped = False
+        if self.cipt:
+            self.tapped = True
 
     def __str__(self):
         return "[ %s (%s) ]" % (self.name, self.cardData.get('manaCost', '0'))
@@ -121,17 +150,20 @@ class LegendaryMixin(object):
 
 class Creature(Card, PermanentMixin):
 
-    def __init__(self, name, cost, spells, power, toughness, type, subtypes):
-        super(Card, Creature).__init__(name, cost, spells)
+    def __init__(self, name='', cost='', spells=[], cardData={}):
+        super(Card, Creature).__init__(name, cost, spells,cardData)
         self.type = 'creature'
-        self.power = power
-        self.toughness = toughness
+        self.power = self.cardData.get("power",None)
+        self.toughness = self.cardData.get("toughness", None)
         self.damage = 0
-        self.subtypes = subtypes
+        self.subtypes = self.cardData.get("subtypes", [])
+        self.summoning_sick = True
+        if self.cardData.get("text","").find("Haste"):
+            self.summoning_sick = Falase
 
 
 class Enchantment(Card, PermanentMixin):
-    def __init__(self, name, cost, spells, target_type):
-        super(Card, Enchantment).__init__(name, cost, spells)
+    def __init__(self, name='', cost='', spells=[], cardData={}):
+        super(Card, Enchantment).__init__(name, cost, spells, cardData)
         self.type = 'enchantment'
         self.target_type = target_type

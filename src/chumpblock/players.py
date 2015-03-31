@@ -24,6 +24,9 @@ class Player(object):
             else:
                 return False
 
+    def available_mana(self):
+
+
     def reset(self):
         self.deck.main = self.deck.main + self.hand + self.graveyard + self.exile + self.battlefield
         self.hand = self.graveyard = self.exile = self.battlefield = []
@@ -51,3 +54,10 @@ class Player(object):
 
         if verbose:
             print("Final hand %s" % ([ str(c) for c in self.hand ]))
+
+    def enumerate_plays(self):
+        ''' For a given hand (or metahand) and available mana, what plays are available to Player'''
+        if not self.hand:
+            return []
+
+        for card in self.hand:
