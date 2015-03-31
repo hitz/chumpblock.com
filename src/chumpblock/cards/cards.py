@@ -159,7 +159,7 @@ class Creature(Card, PermanentMixin):
         self.subtypes = self.cardData.get("subtypes", [])
         self.summoning_sick = True
         if self.cardData.get("text","").find("Haste"):
-            self.summoning_sick = Falase
+            self.summoning_sick = False
 
 
 class Enchantment(Card, PermanentMixin):
