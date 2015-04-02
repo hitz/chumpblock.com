@@ -7,21 +7,50 @@ zones = ['hand', 'library', 'graveyard', 'battlefield', 'exile']
 permanents = ['Land', 'Creature', 'Enchantment', 'Artifact', 'Planeswalker']
 base_symbols = ['B', 'G', 'R', 'U', 'W']
 
+# mana costs from MTGJson are {Z} where Z is int or symbol
+# hybrid is {S/T}
+# X is {X}
+# Phyrexian is {Z/P}
+allowed_symbols = base_symbols+['X']
+for a in base_symbols:
+    allowed_symbols.append(a+'/P')
+    for b in base_symbols[1:]:
+        if a==b:
+            continue
+        else:
+            allowed_symbols.append(a+'/'+b)
+            allowed_symbols.append(b+'/'+a)
+
+manas = '\{\d+\}'
+for s in allowed_symbols:
+    manas += '\{'+s+'\}+'
+
+keywords = [
+    'flash',
+    'haste',
+    'flying',
+    'first strike',
+    'lifelink',
+    'deathtouch',
+    'indestructable',
+    'reach',
+    'trample',
+    'double strike',
+    'hexproof',
+    'vigilance'
+    ]
+# currently just evergreen keywords
+kwre = [ re.compile(k+'(?i)') for k in keywords ]
+
+templates = {
+    'triggered': re.compile('(when |whenever)(?i)'),
+    'conditional': re.compile('if (?i)'),
+    'activated': re.compile('('+manas+'|sacrifice \S+|pay \S+):(?i)'),
+    'mana_ability': re.compile('^(B|G|R|W|U)$|\{T\}: Add ('+manas+') (.*) to your mana pool')
+}
+
 class Cost(object):
-    # does not handle phyrexian, or alt casting costs
-    # mana costs from MTGJson are {Z} where Z is int or symbol
-    # hybrid is {S/T}
-    # X is {X}
-    # Phyrexian is {Z/P}
-    allowed_symbols = base_symbols+['X']
-    for a in base_symbols:
-        allowed_symbols.append(a+'/P')
-        for b in base_symbols[1:]:
-            if a==b:
-                continue
-            else:
-                allowed_symbols.append(a+'/'+b)
-                allowed_symbols.append(b+'/'+a)
+    # does not handle alt casting costs
 
     def __init__(self, fromString="", B=0, G=0, R=0, U=0, W=0, c=0, X=False):
         self.mana = {}
@@ -65,34 +94,82 @@ class Card(object):
             self.mana_cost = Cost(fromString=cardData.get('manaCost',''))
             self.cardData = cardData
 
-            ''' find important abilities '''
-            text = self.cardData.get("text","")
-            if not text:
-                # note basic lands
-                text = self.cardData.get("originalText", "")
-
-            # find if cipt
-            self.cipt = False
-            if text.find('enters the battlefield tapped'):
-                self.cipt = True
-
-            # find mana abilities
-            if
+            self.keywords = []
+            self.spells = []
+            self.targets = []
+            self._parse_text()
         else:
             self.name = name
             self.mana_cost = Cost(fromString=cost)
-
-        self.spells = spells  # array of functions
+            self.spells = spells  # array of functions
         self.zone = 'library'
         self.untaps_normally = True
         self.summoning_sick = False
         self.tapped = None #
 
+    def _parse_text(self):
+        ''' parse text or originalText for important abilities'''
+        text = self.cardData.get("text","")
+        if not text:
+            # note basic lands
+            text = self.cardData.get("originalText", "")
+
+        # find if cipt
+        self.cipt = False
+        if text.find('enters the battlefield tapped'):
+            self.cipt = True
+
+        # find key_words and mana abilities
+        for line in text.split("\n"):
+            templated = False
+            for template in templates.keys():
+                tokens = templates[template].search(line)
+                if tokens:
+                    templated = True
+                    if template == 'mana_ability':
+                        if len(tokens.group) == 2:
+                            # basic land?
+                            pass
+                        elif len(tokens.group) == 3:
+                            # single type
+                            pass
+                        elif len(tokens.group) >= 4:
+                            # multi type
+                            pass
+            if templated:
+                break
+            if self.isCreature:
+                self.keywords = [ k.lower().strip() for k in kwre.findall(line) ]
+            elif re.search('flash(?i)'):
+                self.keywords = [ 'flash']
+        # find mana abilities
+
     def isLand(self):
         return 'Land' in self.cardData['types']
 
     def isPermanent(self):
-        return False or bool([ ty for ty in self.cardData['types'] if ty in permanents ])
+        [ ty for ty in self.cardData['types'] if ty in permanents ]
+
+    def isCreature(self):
+        return 'Creature' in self.cardData['types']
+
+    def isEnchantment(self):
+        return 'Enchantment' in self.cardData['types']
+
+    def isPlaneswalker(self):
+        return 'Planeswalker' in self.cardData['types']
+
+    def isArtifact(self):
+        return 'Artifact' in self.cardData['types']
+
+    def isInstant(self):
+        return 'Instant' in self.cardData['types']
+
+    def isSorcery(self):
+        return 'Sorcery' in self.cardData['types']
+
+    def isInstantSpeed(self):
+        return self.isInstant or 'flash' in self.keywords
 
     def draw(self):
         self.zone = 'hand'
@@ -124,46 +201,3 @@ class Card(object):
 
 
 
-class PermanentMixin(object):
-    def __init__(self):
-        self.is_permanent = True
-
-
-class ArtifactMixin(object):
-    def __init__(self):
-        self.is_artifact = True
-
-
-class LegendaryMixin(object):
-    def __init__(self):
-        self.is_legendary = True
-
-    def play(self, context):
-        # this is the old Legendary rule
-        others = context.battlefield.get(self.name)
-        if not others:
-            super(Card, LegendaryMixin).play()
-        else:
-            self.destroy()
-            [o.destroy() for o in others]
-
-
-class Creature(Card, PermanentMixin):
-
-    def __init__(self, name='', cost='', spells=[], cardData={}):
-        super(Card, Creature).__init__(name, cost, spells,cardData)
-        self.type = 'creature'
-        self.power = self.cardData.get("power",None)
-        self.toughness = self.cardData.get("toughness", None)
-        self.damage = 0
-        self.subtypes = self.cardData.get("subtypes", [])
-        self.summoning_sick = True
-        if self.cardData.get("text","").find("Haste"):
-            self.summoning_sick = False
-
-
-class Enchantment(Card, PermanentMixin):
-    def __init__(self, name='', cost='', spells=[], cardData={}):
-        super(Card, Enchantment).__init__(name, cost, spells, cardData)
-        self.type = 'enchantment'
-        self.target_type = target_type
